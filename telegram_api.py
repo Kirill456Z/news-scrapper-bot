@@ -17,15 +17,17 @@ from analyzer.analyzer import TextAnalyzer
 import matplotlib.pyplot as plt
 from visualization.plotter import Ploter
 from collections import Counter
+import os
+
+PORT = os.environ.get('PORT', '8443')
 
 
 class Bot:
 
     def __init__(self):
         self.site = Site()
-        self.site.update()
-        self.BOT_TOKEN = "1733275211:AAEQUr0aumwobNGVbnY49FYSLLcNlLKeVKU"
-        self.DEVELOPER_CHAT_ID = "-570178557"
+        self.BOT_TOKEN = os.environ.get("TOKEN")
+        self.DEVELOPER_CHAT_ID = os.environ.get("CHAT_ID")
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -53,7 +55,10 @@ class Bot:
         update.message.reply_markdown_v2(
             f'Привет, {user.mention_markdown_v2()}\!'
         )
-        self.help_command(self,update, _)
+        self.help_command(self, update, _)
+
+    def update(self):
+        self.site.update()
 
     def help_command(self, update: Update, _: CallbackContext):
         """Send a message when the command /help is issued."""
@@ -206,5 +211,7 @@ class Bot:
         context.bot.send_message(chat_id=self.DEVELOPER_CHAT_ID, text=message, parse_mode=ParseMode.HTML)
 
     def launch_bot(self):
-        self.updater.start_polling()
+        print("Current PORT : {}".format(PORT))
+        self.updater.start_webhook(listen='0.0.0.0', port=int(PORT), url_path=self.BOT_TOKEN,
+                                   webhook_url="https://news-scrapper-bot.herokuapp.com/" + self.BOT_TOKEN)
         self.updater.idle()
